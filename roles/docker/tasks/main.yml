@@ -1,0 +1,78 @@
+---
+ - name: Ensure Docker repo file is removed if it exists
+   command: rm -f /etc/yum.repos.d/docker-ce.repo
+ 
+ - name: Remove Docker if it is installed
+   yum:
+     name:
+       - docker
+       - docker-client
+       - docker-client-latest
+       - docker-common
+       - docker-latest
+       - docker-latest-logrotate
+       - docker-logrotate
+       - docker-engine
+     state: absent
+
+ - name: Install specified package (ensure `package_1` variable is defined)
+   yum:
+     name: "{{ package_1 }}"
+     state: present
+ 
+
+ - name: Add Docker repository
+   yum_repository:
+     name: docker-ce
+     description: Docker CE Repository
+     baseurl: https://download.docker.com/linux/centos/7/x86_64/stable
+     enabled: yes
+     gpgcheck: no
+
+# - name: Add CentOS Vault repository for old packages
+#   yum_repository:
+#     name: centos-vault
+#     description: CentOS Vault Repository
+#     baseurl: http://vault.centos.org/7.9.2009/updates/x86_64/
+#     enabled: yes
+#     gpgcheck: no
+#        
+#   when: ansible_os_family == "RedHat"
+
+# - name: Install libcgroup
+#   yum:
+#     name: http://mirror.centos.org/centos/7/os/x86_64/Packages/libcgroup-0.41-21.el7.x86_64.rpm
+#     state: present
+#   when: ansible_os_family == "RedHat"
+
+
+
+ - name: add a libcgroup package in our system
+   get_url:
+     url: http://vault.centos.org/7.9.2009/os/x86_64/Packages/libcgroup-0.41-21.el7.x86_64.rpm
+     dest: /tmp/libcgroup-0.41-21.el7.x86_64.rpm
+     mode: '644'
+
+
+ - name: Installing a libcgroup package
+   yum:
+     name: /tmp/libcgroup-0.41-21.el7.x86_64.rpm
+     state: present
+     disable_gpg_check: yes
+
+
+ - name: Installing the docker packages
+   yum:
+     name: 
+       - docker-ce 
+       - docker-ce-cli 
+       - containerd.io  
+       - docker-buildx-plugin  
+       - docker-compose-plugin
+     state: present
+
+ - name: Start and enable Docker service
+   service:
+     name: docker
+     state: started
+     enabled: yes
